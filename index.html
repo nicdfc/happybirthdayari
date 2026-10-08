@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>The Lockbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090d;
+    --steel-1: #3a414c;
+    --steel-2: #1c2129;
+    --steel-3: #0f1318;
+    --edge: #59616e;
+    --led: #ff3b3b;
+    --led-dim: #3a1010;
+    --ok: #39ff88;
+    --text: #c9d1dc;
+    --muted: #6b7686;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background:
+      radial-gradient(ellipse at 50% 30%, #1a202a 0%, var(--bg) 70%);
+    color: var(--text);
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .box {
+    width: min(380px, 100%);
+    background: linear-gradient(160deg, var(--steel-1), var(--steel-2) 45%, var(--steel-3));
+    border: 2px solid var(--edge);
+    border-radius: 22px;
+    padding: 22px 22px 26px;
+    box-shadow:
+      0 30px 60px rgba(0,0,0,.7),
+      inset 0 1px 0 rgba(255,255,255,.12),
+      inset 0 -2px 6px rgba(0,0,0,.6);
+    position: relative;
+  }
+  /* rivets */
+  .box::before, .box::after {
+    content: "";
+    position: absolute;
+    top: 12px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #9aa3b0, #2a3038);
+    box-shadow: 0 1px 2px rgba(0,0,0,.8);
+  }
+  .box::before { left: 12px; }
+  .box::after { right: 12px; }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 8px 16px;
+  }
+  .title {
+    font-family: "Orbitron", sans-serif;
+    font-weight: 800;
+    letter-spacing: .25em;
+    font-size: 15px;
+    color: #aab3bf;
+    text-shadow: 0 1px 0 #000;
+  }
+  .status {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--led);
+    box-shadow: 0 0 10px var(--led), 0 0 2px #fff inset;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .status.ok { background: var(--ok); box-shadow: 0 0 14px var(--ok); animation: none; }
+  @keyframes pulse { 50% { opacity: .45; } }
+
+  .screen {
+    background: #020403;
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 16px 10px;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.08);
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .digit {
+    width: 36px;
+    height: 52px;
+    border-radius: 6px;
+    background: #071009;
+    border: 1px solid #0f2414;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Orbitron", sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--ok);
+    text-shadow: 0 0 8px var(--ok);
+    transition: border-color .15s;
+  }
+  .digit.active { border-color: #2c7a45; }
+  .digit.active::after {
+    content: "";
+    width: 18px; height: 3px;
+    background: var(--ok);
+    box-shadow: 0 0 6px var(--ok);
+    animation: blink 1s steps(1) infinite;
+    align-self: flex-end;
+    margin-bottom: 8px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .message {
+    height: 22px;
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: .12em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .message.err { color: var(--led); text-shadow: 0 0 6px var(--led); }
+  .message.ok { color: var(--ok); text-shadow: 0 0 6px var(--ok); }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .key {
+    font-family: "Orbitron", sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    color: #dfe5ec;
+    height: 64px;
+    border-radius: 14px;
+    border: 1px solid #0b0e12;
+    background: linear-gradient(180deg, #4a525e, #2a3039);
+    box-shadow:
+      0 5px 0 #11151a,
+      0 8px 14px rgba(0,0,0,.5),
+      inset 0 1px 0 rgba(255,255,255,.18);
+    cursor: pointer;
+    transition: transform .05s, box-shadow .05s;
+    touch-action: manipulation;
+  }
+  .key:active, .key.pressed {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #11151a, 0 2px 6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1);
+  }
+  .key.clear { color: #ff8a8a; font-size: 15px; letter-spacing: .1em; }
+  .key.enter { color: var(--ok); font-size: 15px; letter-spacing: .1em; }
+  .key:focus-visible { outline: 2px solid var(--ok); outline-offset: 2px; }
+
+  .shake { animation: shake .45s; }
+  @keyframes shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(5px); }
+    30%, 50%, 70% { transform: translateX(-9px); }
+    40%, 60% { transform: translateX(9px); }
+  }
+
+  /* opening sequence */
+  .flash {
+    position: fixed; inset: 0;
+    background: radial-gradient(circle, rgba(57,255,136,.55), rgba(57,255,136,0) 70%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .opening .flash { animation: flash 1.4s ease-out forwards; }
+  @keyframes flash { 30% { opacity: 1; } 100% { opacity: 0; } }
+  .opening .box { animation: open 1.6s .4s ease-in forwards; }
+  @keyframes open {
+    0% { transform: perspective(900px) rotateY(0); }
+    100% { transform: perspective(900px) rotateY(-100deg) translateX(-40px); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="flash"></div>
+  <main class="box" id="box">
+    <div class="header">
+      <div class="title">LOCKBOX</div>
+      <div class="status" id="status"></div>
+    </div>
+    <div class="screen" id="screen"></div>
+    <div class="message" id="message">ENTER 7-DIGIT CODE</div>
+    <div class="keypad" id="keypad"></div>
+  </main>
+
+<script src="lock.js"></script>
+<script>
+  const LENGTH = 7;
+  let entry = "";
+  let busy = false;
+
+  const screen = document.getElementById("screen");
+  const message = document.getElementById("message");
+  const keypad = document.getElementById("keypad");
+  const box = document.getElementById("box");
+  const status = document.getElementById("status");
+
+  const digits = [];
+  for (let i = 0; i < LENGTH; i++) {
+    const d = document.createElement("div");
+    d.className = "digit";
+    screen.appendChild(d);
+    digits.push(d);
+  }
+
+  const keys = ["1","2","3","4","5","6","7","8","9","CLR","0","OK"];
+  const keyEls = {};
+  for (const k of keys) {
+    const b = document.createElement("button");
+    b.className = "key" + (k === "CLR" ? " clear" : k === "OK" ? " enter" : "");
+    b.textContent = k;
+    b.addEventListener("click", () => press(k));
+    keypad.appendChild(b);
+    keyEls[k] = b;
+  }
+
+  // Little beeps, no audio files needed.
+  let audio;
+  function beep(freq, dur, type = "square", vol = 0.05) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audio.createOscillator();
+      const g = audio.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = vol;
+      o.connect(g); g.connect(audio.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
+      o.stop(audio.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function render() {
+    digits.forEach((d, i) => {
+      d.textContent = entry[i] || "";
+      d.classList.toggle("active", i === entry.length && !busy);
+    });
+  }
+
+  function setMessage(text, cls = "") {
+    message.textContent = text;
+    message.className = "message " + cls;
+  }
+
+  function press(k) {
+    if (busy) return;
+    if (k === "CLR") {
+      entry = "";
+      beep(300, 0.08);
+      setMessage("ENTER 7-DIGIT CODE");
+    } else if (k === "OK") {
+      if (entry.length === LENGTH) check();
+      else { beep(150, 0.15); setMessage("NEED " + LENGTH + " DIGITS", "err"); }
+    } else if (entry.length < LENGTH) {
+      entry += k;
+      beep(880, 0.06);
+      if (entry.length === 1) setMessage("ENTER 7-DIGIT CODE");
+      if (entry.length === LENGTH) { render(); setTimeout(check, 250); return; }
+    }
+    render();
+  }
+
+  function check() {
+    if (busy) return;
+    busy = true;
+    render();
+    setMessage("CHECKING...");
+    setTimeout(() => {
+      const result = tryUnlock(entry);
+      if (result) {
+        status.classList.add("ok");
+        setMessage("ACCESS GRANTED", "ok");
+        beep(660, 0.12, "sine", 0.08);
+        setTimeout(() => beep(990, 0.12, "sine", 0.08), 130);
+        setTimeout(() => beep(1320, 0.3, "sine", 0.08), 260);
+        try { sessionStorage.setItem("lockbox-code", entry); } catch (e) {}
+        setTimeout(() => document.body.classList.add("opening"), 700);
+        setTimeout(() => {
+          location.href = "unlocked.html#" + entry;
+        }, 2600);
+      } else {
+        setMessage("ACCESS DENIED", "err");
+        beep(140, 0.4, "sawtooth", 0.06);
+        box.classList.remove("shake");
+        void box.offsetWidth;
+        box.classList.add("shake");
+        setTimeout(() => {
+          entry = "";
+          busy = false;
+          render();
+          setMessage("TRY AGAIN");
+        }, 900);
+      }
+    }, 600);
+  }
+
+  // Physical keyboard support too.
+  document.addEventListener("keydown", (e) => {
+    let k = null;
+    if (/^[0-9]$/.test(e.key)) k = e.key;
+    else if (e.key === "Enter") k = "OK";
+    else if (e.key === "Backspace") {
+      if (!busy && entry.length) { entry = entry.slice(0, -1); beep(300, 0.05); render(); }
+      return;
+    } else if (e.key === "Escape") k = "CLR";
+    if (!k) return;
+    e.preventDefault();
+    const el = keyEls[k];
+    el.classList.add("pressed");
+    setTimeout(() => el.classList.remove("pressed"), 100);
+    press(k);
+  });
+
+  render();
+</script>
+</body>
+</html>
