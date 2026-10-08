@@ -83,6 +83,26 @@
   }
   .footer.show { opacity: 1; }
 
+  .back {
+    display: inline-block;
+    margin-top: 34px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(242,199,92,.45);
+    background: rgba(242,199,92,.08);
+    color: var(--gold);
+    font-family: "Share Tech Mono", monospace;
+    font-size: 14px;
+    letter-spacing: .2em;
+    text-decoration: none;
+    transition: background .2s, box-shadow .2s;
+  }
+  .back:hover, .back:focus-visible {
+    background: rgba(242,199,92,.18);
+    box-shadow: 0 0 16px rgba(242,199,92,.35);
+    outline: none;
+  }
+
   .locked {
     font-family: "Share Tech Mono", monospace;
     color: #ff5b5b;
@@ -122,7 +142,8 @@
     <div class="scroll">
       <div class="msg" id="msg"></div>
     </div>
-    <div class="footer" id="footer">HAPPY 13TH BIRTHDAY, ARI</div>
+    <div class="footer" id="footer"></div>
+    <a class="back" id="back" href="index.html">&larr; BACK TO LOCKBOX</a>
   </div>
 
 <script src="lock.js"></script>
@@ -133,11 +154,18 @@
   // Keep the code out of the address bar.
   if (location.hash) history.replaceState(null, "", location.pathname);
 
-  const text = code ? tryUnlock(code) : null;
+  const secret = code ? tryUnlock(code) : null;
+  const text = secret && secret.msg;
+  document.getElementById("footer").textContent = (secret && secret.footer) || "";
+
+  // Going back re-locks the box.
+  document.getElementById("back").addEventListener("click", () => {
+    try { sessionStorage.removeItem("lockbox-code"); } catch (e) {}
+  });
   const msg = document.getElementById("msg");
 
   if (!text) {
-    msg.innerHTML = '<div class="locked">NICE TRY.<br>THIS BOX IS STILL LOCKED.<br><br><a href="index.html">&larr; Back to the keypad</a></div>';
+    msg.innerHTML = '<div class="locked">NICE TRY.<br>THIS BOX IS STILL LOCKED.</div>';
     document.querySelector(".badge").textContent = "■ ACCESS DENIED ■";
     document.querySelector(".badge").style.color = "#ff5b5b";
     document.querySelector(".badge").style.textShadow = "0 0 8px #ff5b5b";

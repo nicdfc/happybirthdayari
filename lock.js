@@ -1,7 +1,10 @@
-// The code and the secret message are not stored in plain text, so peeking at
-// the page source won't give the answer away. The message is scrambled with a
-// keystream derived from the code; only the right code unscrambles it.
-const SECRET = "N+T+MkOlMPU1mYzummBd5RdeG6pEVzCUxfvsxB/pWMQvB/YTe8bGg5dKJhrnvITT4QgJEu4t0MVuI6jcB58fi5TfmAgLjHypeIlcLSe+KLg=";
+// The codes and the secret messages are not stored in plain text, so peeking
+// at the page source won't give the answers away. Each message is scrambled
+// with a keystream derived from its code; only the right code unscrambles it.
+const SECRETS = [
+  "N+T+EA69MbJ9zNvFm3BW5RRCTrZPUzuU2OCpih/mTsh7AfxEPsTNwNwEKwiptYrI4ggfH+Vowd1nYLmUFtcOk9XOmFsLlz2kN45LfjuoaaXaP/7Y3QU8wvafHKz4HWl6tVceRXuZ3h2Or/ZXLxgFn3ruuil3IDVjcZWSOAxa",
+  "Vc0PYiEIyk48f+LEYkQsM8FosJAIRUDinePFIQhvJvk=",
+];
 
 function keystream(code) {
   let h = 2166136261 >>> 0;
@@ -19,10 +22,18 @@ function keystream(code) {
   };
 }
 
-// Returns the message if the code is right, otherwise null.
+// Returns { msg, footer } if the code opens one of the secrets, otherwise null.
 function tryUnlock(code) {
+  for (const secret of SECRETS) {
+    const found = unscramble(secret, code);
+    if (found) return found;
+  }
+  return null;
+}
+
+function unscramble(secret, code) {
   const next = keystream(code);
-  const raw = atob(SECRET);
+  const raw = atob(secret);
   const bytes = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i) ^ next();
   let text;
@@ -31,5 +42,10 @@ function tryUnlock(code) {
   } catch (e) {
     return null;
   }
-  return text.startsWith("OK|") ? text.slice(3) : null;
+  if (!text.startsWith("OK|")) return null;
+  try {
+    return JSON.parse(text.slice(3));
+  } catch (e) {
+    return null;
+  }
 }
