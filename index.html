@@ -93,6 +93,15 @@
     animation: pulse 1.6s ease-in-out infinite;
   }
   .status.ok { background: var(--ok); box-shadow: 0 0 14px var(--ok); animation: none; }
+  .lights { display: flex; align-items: center; gap: 14px; }
+  .strikes { display: flex; gap: 6px; }
+  .strikes span {
+    width: 9px; height: 9px; border-radius: 2px;
+    background: #2a1a0a;
+    border: 1px solid #000;
+    transition: background .2s, box-shadow .2s;
+  }
+  .strikes span.on { background: #ffa21f; box-shadow: 0 0 8px #ffa21f; }
   @keyframes pulse { 50% { opacity: .45; } }
 
   .screen {
@@ -183,6 +192,86 @@
     40%, 60% { transform: translateX(9px); }
   }
 
+  /* self-destruct */
+  .quake { animation: quake .8s; }
+  @keyframes quake {
+    10% { transform: translate(-14px, 8px); }
+    20% { transform: translate(12px, -10px); }
+    30% { transform: translate(-10px, -6px); }
+    40% { transform: translate(9px, 9px); }
+    55% { transform: translate(-6px, 4px); }
+    70% { transform: translate(4px, -3px); }
+    85% { transform: translate(-2px, 2px); }
+  }
+  .boom {
+    position: fixed; inset: 0;
+    background: radial-gradient(circle at var(--bx, 50%) var(--by, 50%), #fff 0%, #ffd27a 12%, #ff6a00 30%, rgba(120,20,0,.6) 55%, rgba(0,0,0,0) 80%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .boom.go { animation: boom 1.3s ease-out forwards; }
+  @keyframes boom { 0% { opacity: 1; } 15% { opacity: 1; } 100% { opacity: 0; } }
+  .particle { position: fixed; pointer-events: none; z-index: 6; }
+  .shard {
+    background: linear-gradient(160deg, #6b7380, #2a3039);
+    border: 1px solid #11151a;
+    border-radius: 2px;
+  }
+  .fire { border-radius: 50%; background: radial-gradient(circle, #fff6c2, #ffae00 40%, #ff4000 70%, rgba(255,64,0,0) 72%); }
+  .smoke { border-radius: 50%; background: rgba(60,60,64,.55); filter: blur(10px); z-index: 4; }
+
+  .box.gone { visibility: hidden; }
+  .box.rebuild { animation: rebuild .9s ease-out; }
+  @keyframes rebuild {
+    from { opacity: 0; transform: scale(.85); filter: brightness(2); }
+    to { opacity: 1; transform: none; filter: none; }
+  }
+
+  .lockout {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 3;
+  }
+  .lockout.show { display: flex; animation: fadein .8s ease-out; }
+  @keyframes fadein { from { opacity: 0; } }
+  .lockout-panel {
+    width: min(380px, 100%);
+    text-align: center;
+    padding: 28px 22px;
+    border-radius: 18px;
+    border: 2px solid #5a1a10;
+    background: repeating-linear-gradient(-45deg, #140806 0 14px, #1d0b07 14px 28px);
+    box-shadow: 0 0 40px rgba(255,60,0,.25), inset 0 0 30px rgba(0,0,0,.8);
+  }
+  .lockout-icon { font-size: 44px; line-height: 1; margin-bottom: 10px; }
+  .lockout-title {
+    font-family: "Orbitron", sans-serif;
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: .14em;
+    color: #ff5b3b;
+    text-shadow: 0 0 10px #ff3b1b;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  .lockout-sub { margin-top: 10px; color: #c9a99f; letter-spacing: .12em; font-size: 13px; }
+  .countdown {
+    margin: 22px 0 16px;
+    font-family: "Orbitron", sans-serif;
+    font-weight: 800;
+    font-size: 64px;
+    color: #ffa21f;
+    text-shadow: 0 0 18px rgba(255,162,31,.7);
+    font-variant-numeric: tabular-nums;
+  }
+  .bar { height: 8px; border-radius: 4px; background: #2a0f08; overflow: hidden; border: 1px solid #000; }
+  .bar > div { height: 100%; width: 0; background: linear-gradient(90deg, #ff4000, #ffa21f); box-shadow: 0 0 10px #ff6a00; }
+  .lockout-foot { margin-top: 12px; color: #8a6a60; font-size: 12px; letter-spacing: .2em; }
+
   /* opening sequence */
   .flash {
     position: fixed; inset: 0;
@@ -205,24 +294,46 @@
   <main class="box" id="box">
     <div class="header">
       <div class="title">LOCKBOX</div>
-      <div class="status" id="status"></div>
+      <div class="lights">
+        <div class="strikes" id="strikes" title="Wrong attempts"><span></span><span></span><span></span></div>
+        <div class="status" id="status"></div>
+      </div>
     </div>
     <div class="screen" id="screen"></div>
     <div class="message" id="message">ENTER 7-DIGIT CODE</div>
     <div class="keypad" id="keypad"></div>
   </main>
+  <div class="boom" id="boom"></div>
+  <div class="lockout" id="lockout">
+    <div class="lockout-panel">
+      <div class="lockout-icon">&#128165;</div>
+      <div class="lockout-title">SELF-DESTRUCT TRIGGERED</div>
+      <div class="lockout-sub">3 WRONG CODES. LOCKBOX DESTROYED.</div>
+      <div class="countdown" id="countdown">1:00</div>
+      <div class="bar"><div id="bar"></div></div>
+      <div class="lockout-foot">REBUILDING LOCKBOX...</div>
+    </div>
+  </div>
 
 <script src="lock.js"></script>
 <script>
   const LENGTH = 7;
+  const MAX_ATTEMPTS = 3;
+  const LOCKOUT_MS = 60 * 1000;
+  const LOCKOUT_KEY = "lockbox-lockout-until";
   let entry = "";
   let busy = false;
+  let wrong = 0;
 
   const screen = document.getElementById("screen");
   const message = document.getElementById("message");
   const keypad = document.getElementById("keypad");
   const box = document.getElementById("box");
   const status = document.getElementById("status");
+  const strikes = document.querySelectorAll("#strikes span");
+  const lockout = document.getElementById("lockout");
+  const countdown = document.getElementById("countdown");
+  const bar = document.getElementById("bar");
 
   const digits = [];
   for (let i = 0; i < LENGTH; i++) {
@@ -309,20 +420,185 @@
           location.href = "unlocked.html#" + entry;
         }, 2600);
       } else {
+        wrong++;
+        renderStrikes();
         setMessage("ACCESS DENIED", "err");
         beep(140, 0.4, "sawtooth", 0.06);
         box.classList.remove("shake");
         void box.offsetWidth;
         box.classList.add("shake");
+        if (wrong >= MAX_ATTEMPTS) {
+          setMessage("SELF-DESTRUCT ARMED", "err");
+          selfDestruct();
+          return;
+        }
         setTimeout(() => {
           entry = "";
           busy = false;
           render();
-          setMessage("TRY AGAIN");
+          const left = MAX_ATTEMPTS - wrong;
+          setMessage(left === 1 ? "WARNING: 1 ATTEMPT LEFT" : "TRY AGAIN (" + left + " LEFT)", left === 1 ? "err" : "");
         }, 900);
       }
     }, 600);
   }
+
+  function renderStrikes() {
+    strikes.forEach((s, i) => s.classList.toggle("on", i < wrong));
+  }
+
+  // ---- Self-destruct ----
+
+  function noiseBoom() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const len = audio.sampleRate * 2;
+      const buf = audio.createBuffer(1, len, audio.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      const src = audio.createBufferSource();
+      src.buffer = buf;
+      const lp = audio.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.setValueAtTime(2000, audio.currentTime);
+      lp.frequency.exponentialRampToValueAtTime(120, audio.currentTime + 1.5);
+      const g = audio.createGain();
+      g.gain.value = 0.9;
+      src.connect(lp); lp.connect(g); g.connect(audio.destination);
+      src.start();
+      const o = audio.createOscillator();
+      const og = audio.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(120, audio.currentTime);
+      o.frequency.exponentialRampToValueAtTime(30, audio.currentTime + 1);
+      og.gain.setValueAtTime(0.6, audio.currentTime);
+      og.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 1.2);
+      o.connect(og); og.connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + 1.2);
+    } catch (e) {}
+  }
+
+  function spawn(cls, x, y, w, h, frames, opts) {
+    const el = document.createElement("div");
+    el.className = "particle " + cls;
+    el.style.left = x - w / 2 + "px";
+    el.style.top = y - h / 2 + "px";
+    el.style.width = w + "px";
+    el.style.height = h + "px";
+    document.body.appendChild(el);
+    const anim = el.animate(frames, Object.assign({ easing: "cubic-bezier(.15,.7,.4,1)", fill: "forwards" }, opts));
+    anim.onfinish = () => el.remove();
+  }
+
+  function selfDestruct() {
+    // Countdown beeps, faster and faster, then boom.
+    const beeps = [0, 400, 700, 900, 1050, 1150, 1230];
+    beeps.forEach(t => setTimeout(() => {
+      beep(1400, 0.07, "square", 0.06);
+      box.classList.remove("shake"); void box.offsetWidth; box.classList.add("shake");
+    }, t));
+    setTimeout(explode, 1400);
+  }
+
+  function explode() {
+    const r = box.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+
+    const boom = document.getElementById("boom");
+    boom.style.setProperty("--bx", cx + "px");
+    boom.style.setProperty("--by", cy + "px");
+    boom.classList.remove("go"); void boom.offsetWidth; boom.classList.add("go");
+    document.body.classList.remove("quake"); void document.body.offsetWidth; document.body.classList.add("quake");
+    noiseBoom();
+    box.classList.add("gone");
+
+    // Metal shards flying out and falling.
+    for (let i = 0; i < 46; i++) {
+      const x = r.left + Math.random() * r.width;
+      const y = r.top + Math.random() * r.height;
+      const ang = Math.atan2(y - cy, x - cx) + (Math.random() - .5) * .8;
+      const dist = 250 + Math.random() * 450;
+      const dx = Math.cos(ang) * dist;
+      const dy = Math.sin(ang) * dist;
+      const rot = (Math.random() - .5) * 1440;
+      const w = 10 + Math.random() * 40, h = 8 + Math.random() * 30;
+      spawn("shard", x, y, w, h, [
+        { transform: "translate(0,0) rotate(0)", opacity: 1 },
+        { transform: `translate(${dx * .7}px, ${dy * .7 - 60}px) rotate(${rot * .6}deg)`, opacity: 1, offset: .5 },
+        { transform: `translate(${dx}px, ${dy + 500}px) rotate(${rot}deg)`, opacity: 0 }
+      ], { duration: 1800 + Math.random() * 900, easing: "cubic-bezier(.2,.6,.5,1)" });
+    }
+    // Fireball.
+    for (let i = 0; i < 28; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 40 + Math.random() * 180;
+      const size = 40 + Math.random() * 90;
+      spawn("fire", cx, cy, size, size, [
+        { transform: "translate(0,0) scale(.2)", opacity: 1 },
+        { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(1.6)`, opacity: 0 }
+      ], { duration: 700 + Math.random() * 700 });
+    }
+    // Smoke.
+    for (let i = 0; i < 16; i++) {
+      const size = 80 + Math.random() * 120;
+      const x = cx + (Math.random() - .5) * r.width;
+      const y = cy + (Math.random() - .5) * r.height * .6;
+      spawn("smoke", x, y, size, size, [
+        { transform: "translate(0,0) scale(.4)", opacity: 0 },
+        { transform: `translate(${(Math.random() - .5) * 60}px, -60px) scale(1)`, opacity: .9, offset: .2 },
+        { transform: `translate(${(Math.random() - .5) * 160}px, -320px) scale(2)`, opacity: 0 }
+      ], { duration: 3500 + Math.random() * 2000, delay: 200 + Math.random() * 400, easing: "ease-out" });
+    }
+
+    const until = Date.now() + LOCKOUT_MS;
+    try { localStorage.setItem(LOCKOUT_KEY, String(until)); } catch (e) {}
+    setTimeout(() => startLockout(until), 1800);
+  }
+
+  function startLockout(until) {
+    busy = true;
+    box.classList.add("gone");
+    lockout.classList.add("show");
+    let lastSecs = null;
+    const tick = () => {
+      const ms = Math.max(0, until - Date.now());
+      const secs = Math.ceil(ms / 1000);
+      countdown.textContent = Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0");
+      bar.style.width = (100 * (1 - ms / LOCKOUT_MS)) + "%";
+      if (secs !== lastSecs && secs <= 5 && secs > 0) beep(700, 0.06, "square", 0.04);
+      lastSecs = secs;
+      if (ms <= 0) {
+        clearInterval(timer);
+        endLockout();
+      }
+    };
+    const timer = setInterval(tick, 200);
+    tick();
+  }
+
+  function endLockout() {
+    try { localStorage.removeItem(LOCKOUT_KEY); } catch (e) {}
+    lockout.classList.remove("show");
+    wrong = 0;
+    entry = "";
+    busy = false;
+    renderStrikes();
+    box.classList.remove("gone", "shake");
+    box.classList.add("rebuild");
+    setTimeout(() => box.classList.remove("rebuild"), 1000);
+    setMessage("LOCKBOX RESTORED");
+    beep(520, 0.1, "sine", 0.07);
+    setTimeout(() => beep(780, 0.15, "sine", 0.07), 120);
+    render();
+  }
+
+  // Refreshing the page doesn't skip the wait.
+  (() => {
+    let until = 0;
+    try { until = Number(localStorage.getItem(LOCKOUT_KEY)) || 0; } catch (e) {}
+    if (until > Date.now()) startLockout(Math.min(until, Date.now() + LOCKOUT_MS));
+  })();
 
   // Physical keyboard support too.
   document.addEventListener("keydown", (e) => {
