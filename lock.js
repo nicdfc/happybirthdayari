@@ -3,7 +3,8 @@
 // with a keystream derived from its code; only the right code unscrambles it.
 const SECRETS = [
   "N+T+EA69MbJ9zNvFm3BW5RRCTrZPUzuU2OCpih/mTsh7AfxEPsTNwNwEKwiptYrI4ggfH+Vowd1nYLmUFtcOk9XOmFsLlz2kN45LfjuoaaXaP/7Y3QU8wvafHKz4HWl6tVceRXuZ3h2Or/ZXLxgFn3ruuil3IDVjcZWSOAxa",
-  "Vc0PYiEIyk48f+LEYkQsM8FosJAIRUDinePFIQhvJqg1z3/StsHMD9SX53RQ",
+  "Vc0PYiEIyk48f+LEYkQsM8FosJAIRUDinePFIQhvJqg1zXvaoY3UF8GJ+3RDeBc=",
+  "FXod0tdX1DzvK8/Jgsxr9P8G/jsKUrBO/NXi/9msSuI/Sl0hz93NVqB4UeEdZ2k=",
 ];
 
 function keystream(code) {
@@ -22,7 +23,7 @@ function keystream(code) {
   };
 }
 
-// Returns { msg, footer, alien } if the code opens one of the secrets, otherwise null.
+// Returns { msg, footer, char } if the code opens one of the secrets, otherwise null.
 function tryUnlock(code) {
   for (const secret of SECRETS) {
     const found = unscramble(secret, code);

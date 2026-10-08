@@ -126,7 +126,7 @@
   }
 
   /* waving alien (Mika's page) */
-  .alien {
+  .alien, .cool {
     display: none;
     width: 190px;
     height: 210px;
@@ -135,7 +135,7 @@
     filter: drop-shadow(0 0 22px rgba(120,255,110,.35));
     animation: hover 2.6s ease-in-out infinite;
   }
-  .alien.show { display: block; }
+  .alien.show, .cool.show { display: block; }
   @keyframes hover { 50% { transform: translateY(-10px); } }
   .alien .wave {
     transform-origin: 142px 150px;
@@ -152,6 +152,23 @@
   @keyframes wobble { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
   .alien .glow { animation: glow 1.2s ease-in-out infinite alternate; }
   @keyframes glow { to { fill: #fff59a; } }
+
+  /* cool guy with shades (Asher's page) */
+  .cool { filter: drop-shadow(0 0 22px rgba(90,170,255,.35)); animation: nod 1.4s ease-in-out infinite; }
+  @keyframes nod { 50% { transform: translateY(-6px) rotate(-2deg); } }
+  .cool .thumb {
+    transform-origin: 150px 165px;
+    animation: pump 1.4s ease-in-out infinite;
+  }
+  @keyframes pump {
+    0%, 60%, 100% { transform: rotate(0); }
+    70% { transform: rotate(-10deg) translateY(-4px); }
+    80% { transform: rotate(4deg); }
+  }
+  .cool .glint { animation: glint 2.8s ease-in-out infinite; }
+  @keyframes glint { 0%, 55% { transform: translateX(-60px); } 80%, 100% { transform: translateX(70px); } }
+  .cool .sparkle { transform-origin: 152px 62px; animation: sparkle 2.8s ease-in-out infinite; opacity: 0; }
+  @keyframes sparkle { 0%, 70% { opacity: 0; transform: scale(.2) rotate(0); } 80% { opacity: 1; transform: scale(1) rotate(45deg); } 95%, 100% { opacity: 0; transform: scale(.2) rotate(90deg); } }
 </style>
 </head>
 <body>
@@ -226,6 +243,58 @@
       <path d="M82 114 Q100 132 118 114 Q100 122 82 114 Z" fill="#1d4d22"/>
       <path d="M93 121 Q100 128 107 121 Q100 124 93 121 Z" fill="#ff7fa8"/>
     </svg>
+    <svg class="cool" id="cool" viewBox="0 0 200 220" aria-label="A cool guy in sunglasses giving a thumbs up">
+      <defs>
+        <linearGradient id="hoodie" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#4f8dff"/>
+          <stop offset="1" stop-color="#2546b8"/>
+        </linearGradient>
+        <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#3a3f4a"/>
+          <stop offset=".5" stop-color="#0b0d12"/>
+          <stop offset="1" stop-color="#1c2230"/>
+        </linearGradient>
+        <clipPath id="lenses">
+          <path d="M58 76 H96 Q98 76 97 80 L93 96 Q91 102 84 102 H68 Q60 102 58 95 L55 80 Q55 76 58 76 Z"/>
+          <path d="M104 76 H142 Q145 76 145 80 L142 95 Q140 102 132 102 H116 Q109 102 107 96 L103 80 Q102 76 104 76 Z"/>
+        </clipPath>
+      </defs>
+      <!-- hoodie body -->
+      <path d="M40 220 Q40 160 70 146 Q100 136 130 146 Q160 160 160 220 Z" fill="url(#hoodie)"/>
+      <path d="M72 148 Q100 168 128 148" stroke="#1d3a9a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M90 158 L88 188 M110 158 L112 188" stroke="#e8edf7" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="88" cy="190" r="3" fill="#e8edf7"/>
+      <circle cx="112" cy="190" r="3" fill="#e8edf7"/>
+      <!-- neck -->
+      <rect x="88" y="124" width="24" height="22" rx="8" fill="#d9a27c"/>
+      <!-- ears -->
+      <ellipse cx="53" cy="90" rx="8" ry="11" fill="#e9b48d"/>
+      <ellipse cx="147" cy="90" rx="8" ry="11" fill="#e9b48d"/>
+      <!-- head -->
+      <ellipse cx="100" cy="88" rx="47" ry="50" fill="#f2c29b"/>
+      <!-- hair with a big swoop -->
+      <path d="M52 82 Q48 40 84 30 Q104 14 140 26 Q162 34 150 52 Q154 64 148 82 Q142 58 120 54 Q96 58 72 54 Q58 60 52 82 Z" fill="#3b2416"/>
+      <path d="M84 30 Q110 6 150 20 Q138 26 128 40 Q112 26 84 30 Z" fill="#5a3722"/>
+      <!-- smirk -->
+      <path d="M84 118 Q102 128 120 112" stroke="#7a3b2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M118 108 L122 114" stroke="#7a3b2a" stroke-width="3" stroke-linecap="round"/>
+      <!-- shades -->
+      <path d="M48 78 H152" stroke="#0b0d12" stroke-width="5" stroke-linecap="round"/>
+      <path d="M58 76 H96 Q98 76 97 80 L93 96 Q91 102 84 102 H68 Q60 102 58 95 L55 80 Q55 76 58 76 Z" fill="url(#lens)"/>
+      <path d="M104 76 H142 Q145 76 145 80 L142 95 Q140 102 132 102 H116 Q109 102 107 96 L103 80 Q102 76 104 76 Z" fill="url(#lens)"/>
+      <g clip-path="url(#lenses)">
+        <rect class="glint" x="70" y="60" width="10" height="60" fill="#fff" opacity=".55" transform="skewX(-25)"/>
+      </g>
+      <path class="sparkle" d="M152 52 L155 59 L162 62 L155 65 L152 72 L149 65 L142 62 L149 59 Z" fill="#fff"/>
+      <!-- thumbs up arm -->
+      <g class="thumb">
+        <path d="M140 170 Q168 168 172 140" stroke="url(#hoodie)" stroke-width="22" fill="none" stroke-linecap="round"/>
+        <rect x="160" y="112" width="30" height="28" rx="9" fill="#f2c29b"/>
+        <path d="M163 121 H186 M163 129 H186" stroke="#d9a27c" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="161" y="86" width="12" height="32" rx="6" fill="#f2c29b"/>
+        <path d="M164 92 Q167 90 170 92" stroke="#d9a27c" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>
     <div class="scroll">
       <div class="msg" id="msg"></div>
     </div>
@@ -243,9 +312,11 @@
 
   const secret = code ? tryUnlock(code) : null;
   const text = secret && secret.msg;
-  if (secret && secret.alien) {
+  // Some pages get a character instead of the key.
+  const character = secret && secret.char && document.getElementById(secret.char);
+  if (character) {
     document.querySelector(".key-icon").style.display = "none";
-    document.getElementById("alien").classList.add("show");
+    character.classList.add("show");
   }
   document.getElementById("footer").textContent = (secret && secret.footer) || "";
 
